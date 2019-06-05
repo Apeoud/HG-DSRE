@@ -52,49 +52,6 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
         for j in range(len(batch_length)):
             shape.append(shape[j] + batch_length[j])
 
-        # _, sen_0, _ = model.sentence_encoder(seq_word, seq_pos1, seq_pos2, shape)
-        # sen_0 = torch.stack(sen_0)
-        # sen_0 = torch.squeeze(sen_0)
-
-        # _, prob = model.s_forward(sen_0, y_batch=batch_label)
-        # _, prob = model.entity_encoder(seq_entity, sen_0, batch_label)
-
-        # _, _, prob = model(seq_word, seq_pos1, seq_pos2, shape, batch_label)
-
-        # base : loss0
-
-        # def mid(model, seq_word, seq_pos1, seq_pos2, shape):
-        #     embeds1 = model.word_embeddings(seq_word)
-        #     pos1_emb = model.pos1_embeddings(seq_pos1)
-        #     pos2_emb = model.pos2_embeddings(seq_pos2)
-        #     inputs = torch.cat([embeds1, pos1_emb, pos2_emb], 2)
-        #
-        #     # rnn layer Bi-GRU
-        #
-        #     tup, _ = model.lstm(inputs)
-        #
-        #     tupf = tup[:, :, range(model.hidden_dim)]
-        #     tupb = tup[:, :, range(model.hidden_dim, model.hidden_dim * 2)]
-        #     tup = torch.add(tupf, tupb)
-        #     tup = tup.contiguous()
-        #
-        #     tup1 = F.tanh(tup).view(-1, model.hidden_dim)
-        #     tup1 = torch.matmul(tup1, model.attention_w).view(-1, model.max_sentence_size)
-        #     tup1 = F.softmax(tup1).view(-1, 1, model.max_sentence_size)
-        #
-        #     return tup1
-        #
-        # att = mid(model, seq_word, seq_pos1, seq_pos2, shape)
-        # na = att.cpu().data.numpy()
-        # na = np.reshape(na, (-1 , 70))
-        #
-        # for i in na:
-        #     s = list(i)
-        #     sor = sorted(s)
-        #     index = sorted(range(len(s)), key=lambda k: s[k])
-        #     print(sor[-10:-1])
-        #     print(index[-10:-1])
-
         _, sen_0, _ = model.sentence_encoder(seq_word, seq_pos1, seq_pos2, shape)
         sen_0 = torch.stack(sen_0)
         sen_0 = torch.squeeze(sen_0)
