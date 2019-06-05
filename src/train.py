@@ -1,22 +1,14 @@
 import datetime
+
 import matplotlib.pyplot as plt
-import torch.nn.functional as F
-from itertools import chain
-
-from src import load
-
-import torch
 import numpy as np
+import torch
 import torch.optim as optim
-
-from src.load import load_word_embedding, relation_id, build_data, data_collection, load_all_data, to_categorical, \
-    shuffle, load_train, load_test, load_word_embedding_txt, load_train_path, load_test_path, load_train_kg, \
-    load_test_kg, set_noise
-
-from src.model import Encoder, RNN
-
+from sklearn.metrics import precision_recall_curve, average_precision_score, f1_score
 from torch.autograd import Variable
-from sklearn.metrics import accuracy_score, precision_recall_curve, average_precision_score, f1_score
+
+from src.load import load_train, load_test, load_train_path, load_test_path, load_train_kg, \
+    load_test_kg, set_noise
 
 cuda = torch.cuda.is_available()
 
@@ -208,7 +200,7 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
     allpred = []
 
     for i in range(int(len(bag) / batch_size)):
-    #for i in range(100):
+        # for i in range(100):
 
         batch_word = bag[i * batch_size:(i + 1) * batch_size]
         batch_label = np.asarray(label[i * batch_size:(i + 1) * batch_size])
@@ -321,7 +313,8 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
         batch_entity_type = entity_type[i * batch_size:(i + 1) * batch_size]
         seq_entity_type = Variable(torch.LongTensor(np.array([s for s in batch_entity_type]))).cuda()
 
-        _, prob = model.gcn_layer(sen_0, sen_a, sen_b, seq_entity, seq_mid_entity, seq_kg_mid_entity, seq_kg_relation, seq_entity_type,
+        _, prob = model.gcn_layer(sen_0, sen_a, sen_b, seq_entity, seq_mid_entity, seq_kg_mid_entity, seq_kg_relation,
+                                  seq_entity_type,
                                   batch_label)
 
         allpred.extend(list(np.argmax(prob, 1)))
@@ -459,7 +452,7 @@ if __name__ == "__main__":
     # eval(model, model_name="text_path")
     # model = torch.load(kg_path)
     # eval(model, model_name="kg_path")
-    #model = torch.load(entity_type)
+    # model = torch.load(entity_type)
     # eval(model, model_name="entity_type")
 
     # test_noise("../data/model/epoch-gcn-20-0.665-ce")
