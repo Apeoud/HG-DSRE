@@ -3,7 +3,7 @@ import torch
 from sklearn.metrics import f1_score, precision_recall_curve, average_precision_score
 from torch.autograd import Variable
 
-from src.load import load_test, load_test_kg, load_test_path
+from load import load_test, load_test_kg, load_test_path
 
 cuda = torch.cuda.is_available()
 
@@ -24,7 +24,7 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
                                                                                                  indices], mid_entity[
                                                                                                  indices]
         kg_mid_entity, kg_path_relation = kg_mid_entity[indices], kg_path_relation[indices]
-    # model.eval()
+    model.eval()
 
     # print('test %d instances with %d NA relation' % (len(bag), list(label).count(99)))
 
@@ -47,6 +47,12 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
         seq_pos2 = Variable(torch.LongTensor(np.array([s for bag in batch_pos2 for s in bag]))).cuda()
         seq_entity = Variable(torch.LongTensor(np.array(batch_entity))).cuda()
 
+        if cuda:
+            seq_word = seq_word.cuda()
+            seq_pos1 = seq_pos1.cuda()
+            seq_pos2 = seq_pos2.cuda()
+            seq_entity = seq_entity.cuda()
+
         batch_length = [len(bag) for bag in batch_word]
         shape = [0]
         for j in range(len(batch_length)):
@@ -64,7 +70,10 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
         seq_word = Variable(torch.LongTensor(np.array([s for bag in batch_word for s in bag]))).cuda()
         seq_pos1 = Variable(torch.LongTensor(np.array([s for bag in batch_pos1 for s in bag]))).cuda()
         seq_pos2 = Variable(torch.LongTensor(np.array([s for bag in batch_pos2 for s in bag]))).cuda()
-
+        if cuda:
+            seq_word = seq_word.cuda()
+            seq_pos1 = seq_pos1.cuda()
+            seq_pos2 = seq_pos2.cuda()
         batch_length = [len(bag) for bag in batch_word]
         shape = [0]
         for j in range(len(batch_length)):
@@ -82,7 +91,10 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
         seq_word = Variable(torch.LongTensor(np.array([s for bag in batch_word for s in bag]))).cuda()
         seq_pos1 = Variable(torch.LongTensor(np.array([s for bag in batch_pos1 for s in bag]))).cuda()
         seq_pos2 = Variable(torch.LongTensor(np.array([s for bag in batch_pos2 for s in bag]))).cuda()
-
+        if cuda:
+            seq_word = seq_word.cuda()
+            seq_pos1 = seq_pos1.cuda()
+            seq_pos2 = seq_pos2.cuda()
         batch_length = [len(bag) for bag in batch_word]
         shape = [0]
         for j in range(len(batch_length)):
@@ -94,19 +106,24 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
 
         batch_kg_mid_entity = kg_mid_entity[i * batch_size:(i + 1) * batch_size]
         seq_kg_mid_entity = Variable(torch.LongTensor(np.array([s for s in batch_kg_mid_entity]))).cuda()
-
+        if cuda:
+            seq_kg_mid_entity = seq_kg_mid_entity.cuda()
         batch_kg_relation = kg_path_relation[i * batch_size:(i + 1) * batch_size]
         seq_kg_relation = Variable(torch.LongTensor(np.array([s for s in batch_kg_relation]))).cuda()
-
+        if cuda:
+            seq_kg_relation = seq_kg_relation.cuda()
         batch_mid_entity = mid_entity[i * batch_size:(i + 1) * batch_size]
         seq_mid_entity = Variable(torch.LongTensor(np.array([s for s in batch_mid_entity]))).cuda()
-
+        if cuda:
+            seq_mid_entity = seq_mid_entity.cuda()
         batch_entity_type = entity_type[i * batch_size:(i + 1) * batch_size]
         seq_entity_type = Variable(torch.LongTensor(np.array([s for s in batch_entity_type]))).cuda()
-
-        _, prob = model.gcn_layer(sen_0, sen_a, sen_b, seq_entity, seq_mid_entity, seq_kg_mid_entity, seq_kg_relation,
-                                  seq_entity_type,
-                                  batch_label)
+        if cuda:
+            seq_entity_type = seq_entity_type.cuda()
+        _, prob = model.er_gcn_layer(sen_0, sen_a, sen_b, seq_entity, seq_mid_entity, seq_kg_mid_entity,
+                                      seq_kg_relation,
+                                      seq_entity_type,
+                                      batch_label)
 
         allpred.extend(list(np.argmax(prob, 1)))
 
@@ -132,7 +149,9 @@ def eval(model, noise=1, indices=1, batch_size=60, model_name=""):
 
     # order = np.argsort(-prob)
 
-    precision, recall, threshold = precision_recall_curve(alleval[:len(allprob)], allprob)
+    # precision, recall, threshold = precision_recall_curve(alleval[:len(allprob)], allprob)
+    # print('precision:'+str(precision)+'recall:'+str(recall))
+
     average_precision = average_precision_score(alleval[:len(allprob)], allprob)
     print('test average precision' + str(average_precision))
 
@@ -193,5 +212,5 @@ if __name__ == "__main__":
     kg_re2vec = np.load("../data/kg_emb/kg_re_embedding.npy")
     entity2vec = np.load("../data/kg_emb/entity_embedding.npy")
 
-    model = torch.load("../data/model/sentence_model_4")
-    eval(model, model_name="sentence_model_4")
+    model = torch.load("../data/model/hgds_model_3")
+    eval(model, model_name="hgds_model_3")
